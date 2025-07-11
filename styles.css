@@ -1,0 +1,23 @@
+@font-face {
+    font-family: consolas;
+    src: url("Consolas.ttf");
+}
+* {
+    font-family:consolas;
+    user-select: none;
+    font-size: 20px;
+    color:white;
+}
+body {
+    margin:0;
+    padding:10px;
+    background-color: black;
+}
+input {
+    background-color:transparent;
+    border:none;
+    width: 80vw;
+}
+input:focus{
+    outline: none;
+}
