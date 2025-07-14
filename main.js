@@ -152,6 +152,9 @@ const commands = {
             }
             spin()
         }
+    },
+    rpg: () => {
+        window.location.href = "https://www.youtube.com/embed/TLj0-e6J5Yk?autoplay=1"
     }
 }
 const aliases = {}
