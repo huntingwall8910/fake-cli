@@ -6,7 +6,9 @@ export const descs = {
     coinflip:"if the number is above 0.5, you win, if it is lower, you lose. ",
     daily:"daily points, only claimable 24 hours after each daily",
     miner:"Get between 0.01 and 0.0001 points every 0.25 seconds",
-    roulette:"pick between red (5/11), black (5/11), or green (1/11) and spin a wheel, if it lands on your chosen color, it doubles your bet, but if you chose green, it 10x your bet"
+    roulette:`pick between red (5/11), black (5/11), or green (1/11)and spin a wheel,
+if it lands on your chosen color, it doubles your bet, 
+but if you chose green, it 10x your bet`
 }
 export const helpText = `clear: clears the terminal
                 color: changes the text color
