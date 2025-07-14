@@ -1,29 +1,27 @@
-import { navigatorInfo } from "./navigator.js";
-import {descs, technical, helpText} from "./textwall.js"
-const user = navigatorInfo()
+import {descs, helpText} from "./textwall.js"
 const input = document.querySelector("input")
 const output = document.getElementById('output');
+if (!localStorage.getItem("points")) localStorage.setItem("points",0)
+let points = parseFloat(localStorage.getItem("points"))
+if (!localStorage.getItem("color")) localStorage.setItem("color","white")
+output.style.color = localStorage.getItem("color")
+if (!localStorage.getItem("daily")) localStorage.setItem("daily",0)
 String.prototype.isColor = function() {
     const s = new Option().style;
     s.color = this;
     return s.color !== '';
 };
-let ipInfo = {};
-fetch('https://ipinfo.io/json')
-  .then(response => response.json())
-  .then(data => {
-    ipInfo = {
-      ip: data.ip,
-      city: data.city,
-      region: data.region,
-      country: data.country,
-      loc:data.loc,
-      org:data.org,
-      hostname:data.hostname,
-      postal:data.postal,
-      timezone:data.timezone,
-    };
-})
+function format(ms) {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    ms -= hours * 1000 * 60 * 60;
+    const minutes = Math.floor(ms / (1000 * 60));
+    ms -= minutes * 1000 * 60;
+    const seconds = Math.floor(ms / 1000);
+    ms -= seconds * 1000;
+    const milliseconds = Math.floor(ms);
+    return `${hours} hours, ${minutes} minutes, ${seconds} seconds, ${milliseconds} ms`;
+}
+let mining;
 const commands = {
     help: (cmd) => {
         if (cmd){
@@ -38,95 +36,73 @@ const commands = {
             log(helpText,true,true)
         }
     },
-    techdesc: (cmd) => {
-        if (technical[cmd]){
-            log(technical[cmd],true)
-        }
-        else {
-            log("command not found",true)
-        }
-        
-    },
-    echo: (str) => {
-        log(str,true)
-    },
-    clear: () => {
-        output.innerHTML = ""
-    },
     color: (str) => {
         if (str.isColor()){
-            input.style.color = str
             output.style.color = str
+            input.style.color = str
             document.querySelector('span').style.color = str
+            localStorage.setItem("color",str)
         }
         else {
             log("invalid color",true)
         }
     },
-    aliases: () => {
-        log(`help: ?
-            techdesc:td
-            clear: cls`)
+    clear: () => {
+        output.textContent = ``
     },
-    fetch: () => {
-        log(`
-            Browser:${user.browser},
-            Version: ${user.browserVersion},
-            OS: ${user.os},
-            OS Version: ${user.osVersion},
-            Device: ${user.deviceType},
-            User Agent: ${user.userAgent},
-            Platform: ${user.platform},
-            Language: ${user.language},
-            `,true,true)
-    },
-    ip: () => {
-        log(`
-            IP: ${ipInfo.ip}
-            ISP: ${ipInfo.org}
-            Hostname: ${ipInfo.hostname}
-            City: ${ipInfo.city}
-            Region: ${ipInfo.region}
-            Country: ${ipInfo.country}
-            Approx. Location: ${ipInfo.loc}
-            Approx. Postal Code: ${ipInfo.postal}
-            Timezone: ${ipInfo.timezone}
-            `,true,true)
-    },
-    unix: () => {
-        log(Date.now())
-    },
-    date: () =>{
-        log(new Date())
-    },
-    history: () => {
-        log(history)
-    },
-    clearHistory: () => {
-        history = []
-    },
-    open: (url) => {
-        if (!/^https?:\/\//i.test(url)) {
-            window.open(`https://${url}`)
+    daily: () =>{
+        if (Date.now() - localStorage.getItem("daily") < 86400000){
+            const remaining = 86400000 - (Date.now() - localStorage.getItem("daily"))
+            log(`Claim your daily in ${format(remaining)}`)
         }
         else {
-            window.open(url)
-        }
+            log(`claimed!`)
+            points += 10
+            updPoints()
+            localStorage.setItem("daily",Date.now())
+        } 
     },
-    redirect: (url) => {
-        if (!/^https?:\/\//i.test(url)) {
-            window.location.href = `https://${url}`
+    miner: (toggle) => {
+        if (toggle == "start"){
+            mining = setInterval(() => {
+                points += parseFloat((Math.random() / 10).toFixed(4))
+                updPoints()
+            },500)
+        }
+        else if (toggle == "stop"){
+            if (mining){
+                clearInterval(mining)
+                mining = false
+            }
+            else log("miner is inactive")
         }
         else {
-            window.location.href = url
+            log("type either start or stop", true)
         }
+    },
+    coinflip: (bet) => {
+        if (!bet || isNaN(bet)) log("enter a valid bet")
+        else if (bet < 1) log("minimum bet is 1")
+        else {
+            if (points < bet){
+                log("You don't have enough")
+                return
+            }
+            points -= bet
+            let result = Math.random()
+            log(result)
+            if (result > 0.5){
+                points += bet * 2
+                log("You win!")
+            }
+            else {
+                log("You Lose :(")
+            }
+        }
+        updPoints()
     }
 }
-const aliases = {
-    "?":"help",
-    cls:"clear",
-    td:"techdesc"
-}
+const aliases = {}
 let history = []
 let hIndex = -1
 window.oncontextmenu = null
@@ -154,27 +130,36 @@ document.body.addEventListener('keydown', (e) => {
     }
     if (document.activeElement !== input) input.focus();
 });
-function handle(){
-    log("> " + input.value)
-    if (input.value == "") return
-    history.push(input.value)
-    hIndex = history.length
-    let args = input.value.split(" ")
-    let i = args[0]
-    let cmd = commands[i] || commands[aliases[i]]
+function handle() {
+    log("> " + input.value);
+    if (input.value === "") return;
+    history.push(input.value);
+    hIndex = history.length;
+    let rawArgs = input.value.match(/"[^"]*"|'[^']*'|\S+/g) || [];
+    const commandName = rawArgs[0];
+    const cmd = commands[commandName] || commands[aliases[commandName]];
     if (cmd) {
-        if (args[1]) cmd(args[1])
-        else cmd()
+        const cmdArgs = rawArgs.slice(1).map(arg => {
+            if ((arg.startsWith('"') && arg.endsWith('"')) ||
+                (arg.startsWith("'") && arg.endsWith("'"))) {
+                return arg.slice(1, -1);
+            }
+            return arg;
+        });
+        cmd(...cmdArgs);
+    } else {
+        log("command not found");
     }
-    else {
-        log("command not found")
-    }
-    input.value = ""
+    input.value = "";
 }
 function log(str,bottom = false, top = false){
     if (top) output.innerText += `\n`
     output.innerText += `${str}\n`
     if (bottom) output.innerText += `\n`
 }
-log(`terminal thing
-    type help for commands`)
+function updPoints(){
+    document.getElementById('bar').textContent = `Terminal Points: ${points.toFixed(4)}`;
+    localStorage.setItem("points",points)
+}
+updPoints()
+log(`type help for commands`)
