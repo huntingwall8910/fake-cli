@@ -7,7 +7,6 @@
     user-select: none;
     font-size: 20px;
     color:white;
-    overflow-x:hidden;
     margin:0;
     padding:0;
 }
@@ -29,4 +28,7 @@ input:focus{
 }
 #output {
     white-space: pre;
+    word-wrap: break-word;
+    word-break: break-all;
+    width:100vw;
 }

@@ -134,11 +134,11 @@ const commands = {
                     spins--
                     delay += 10
                     if (index > options.length) index = 0
-                    output.innerHTML = `&nbsp;${a(index - 2)}<br>&nbsp;${a(index - 1)}<br>>${a(index)}<<br>&nbsp;${a(index+1)}<br>&nbsp;${a(index+2)}<br>`
+                    output.innerHTML = `<br>&nbsp;${a(index - 2)}<br>&nbsp;${a(index - 1)}<br>>${a(index)}<<br>&nbsp;${a(index+1)}<br>&nbsp;${a(index+2)}<br><br>`
                     setTimeout(spin,delay)
                 }
                 else {
-                    log(options[index],true,true)
+                    log(options[index],true)
                     if (choice == options[index]){
                         if (choice == "green") points += bet * 10
                         else points += bet * 2
