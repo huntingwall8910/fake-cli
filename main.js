@@ -5,6 +5,8 @@ if (!localStorage.getItem("points")) localStorage.setItem("points",0)
 let points = parseFloat(localStorage.getItem("points"))
 if (!localStorage.getItem("color")) localStorage.setItem("color","white")
 output.style.color = localStorage.getItem("color")
+input.style.color = localStorage.getItem("color")
+document.querySelector('span').style.color = localStorage.getItem("color")
 if (!localStorage.getItem("daily")) localStorage.setItem("daily",0)
 String.prototype.isColor = function() {
     const s = new Option().style;
@@ -65,7 +67,7 @@ const commands = {
     miner: (toggle) => {
         if (toggle == "start"){
             mining = setInterval(() => {
-                points += parseFloat((Math.random() / 10).toFixed(4))
+                if (!document.hidden) points += parseFloat((Math.random() / 10).toFixed(4))
                 updPoints()
             },500)
         }
@@ -81,6 +83,8 @@ const commands = {
         }
     },
     coinflip: (bet) => {
+        if (bet == "all") bet = points
+        if (bet == "half") bet = points / 2
         if (!bet || isNaN(bet)) log("enter a valid bet")
         else if (bet < 1) log("minimum bet is 1")
         else {
@@ -100,6 +104,54 @@ const commands = {
             }
         }
         updPoints()
+    },
+    roulette: (choice, bet) => {
+        let options = ["red","black","green","red","black","red","black","red","black","red","black"]
+        if (!options.includes(choice.toLowerCase())){
+            log("invalid choice")
+            return
+        }
+        if (bet == "all") bet = points
+        if (bet == "half") bet = points / 2
+        if (!bet || isNaN(bet)) log("enter a valid bet")
+        else if (bet < 1) log("minimum bet is 1")
+        else {
+            if (points < bet){
+                log("You don't have enough")
+                return
+            }
+            points -= bet
+            updPoints()
+            let spins = Math.floor(Math.random() * 30) + 25
+            let index = 0
+            let delay = 10
+            function spin(){
+                function a(i){
+                    return options[(i + options.length) % options.length]
+                }
+                if (spins > 0){
+                    index++
+                    spins--
+                    delay += 10
+                    if (index > options.length) index = 0
+                    output.innerHTML = `&nbsp;${a(index - 2)}<br>&nbsp;${a(index - 1)}<br>>${a(index)}<<br>&nbsp;${a(index+1)}<br>&nbsp;${a(index+2)}<br>`
+                    setTimeout(spin,delay)
+                }
+                else {
+                    log(options[index],true,true)
+                    if (choice == options[index]){
+                        if (choice == "green") points += bet * 10
+                        else points += bet * 2
+                        log("You won!")
+                    }
+                    else {
+                        log("you lose :(")
+                    }
+                    updPoints()
+                }
+            }
+            spin()
+        }
     }
 }
 const aliases = {}
