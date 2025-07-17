@@ -8,13 +8,15 @@ export const descs = {
     miner:"Get between 0.01 and 0.0001 points every 0.25 seconds",
     roulette:`pick between red (5/11), black (5/11), or green (1/11)and spin a wheel,
 if it lands on your chosen color, it doubles your bet, 
-but if you chose green, it 10x your bet`
+but if you chose green, it 10x your bet`,
+    blackjack:`blackjack`
 }
 export const helpText = `clear: clears the terminal
-                color: changes the text color
-                coinflip: 50/50 chance to double your bet
-                daily: get daily points
-                miner:mines for points every .25 seconds
-                roulette: play roulette in the terminal
-                help: provides this menu
-                for more information type help (command)`
+color: changes the text color
+coinflip: 50/50 chance to double your bet
+daily: get daily points
+miner:mines for points every .25 seconds
+roulette: play roulette in the terminal
+blackjack: play blackjack
+help: provides this menu
+for more information type help (command)`

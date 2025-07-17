@@ -24,6 +24,7 @@ function format(ms) {
     return `${hours} hours, ${minutes} minutes, ${seconds} seconds, ${milliseconds} ms`;
 }
 let mining;
+let prompting
 const commands = {
     help: (cmd) => {
         if (cmd){
@@ -155,6 +156,76 @@ const commands = {
     },
     rpg: () => {
         window.location.href = "https://www.youtube.com/embed/TLj0-e6J5Yk?autoplay=1"
+    },
+    blackjack: (bet) => {
+        if (bet == "all") bet = points
+        if (bet == "half") bet = points / 2
+        if (!bet || isNaN(bet)) log("enter a valid bet")
+        else if (bet < 1) log("minimum bet is 1")
+        else {
+            if (points < bet){
+                log("You don't have enough")
+                return
+            }
+            points -= bet
+            updPoints()
+            let amount = Math.ceil(Math.random() * 10);
+            let dealer = Math.ceil(Math.random() * 10)
+            const dealerTurn = () => {
+                if (dealer === 21) {
+                    log("Dealer has blackjack! You lose.");
+                    return;
+                }
+                if (dealer > 21) {
+                    log("Dealer busted! You win!");
+                    points += bet * 2
+                    return;
+                }
+                if (dealer >= 17) {
+                    if (dealer > amount) {
+                        log(`Dealer stood with ${dealer}, You Lose`);
+                    } else if (dealer < amount) {
+                        log(`Dealer stood with ${dealer}, You Win!`);
+                        points += bet * 2
+                    } else {
+                        log("Push!");
+                        points += bet
+                    }
+                    return;
+                }
+                dealer += Math.ceil(Math.random() * 10);
+                log(`Dealer now has ${dealer}`)
+                setTimeout(dealerTurn, 1000);
+            };
+            const play = () => {
+                log(`Dealer has: ${dealer}`)
+                log(`Your total is: ${amount}`);
+                if (amount == 21){
+                    log(`Blackjack!`)
+                    points += bet * 2
+                    return
+                }
+                if (amount > 21) {
+                    log("Bust! You lose.");
+                    return;
+                }
+                setTimeout(() => {
+                    prompt("Hit or stand?", ["h", "s"], {
+                        h: () => {
+                            amount += Math.ceil(Math.random() * 10);
+                            play();
+                        },
+                        s: () => {
+                            log(`You stood with ${amount}.`);
+                            setTimeout(() => {
+                                dealerTurn()
+                            }, 1000);
+                        }
+                    });
+                }, 50);
+            }
+            play();
+        };
     }
 }
 const aliases = {}
@@ -191,6 +262,20 @@ function handle() {
     history.push(input.value);
     hIndex = history.length;
     let rawArgs = input.value.match(/"[^"]*"|'[^']*'|\S+/g) || [];
+    if (prompting) {
+        const inputStr = input.value.trim().toLowerCase();
+        if (prompting.options.includes(inputStr)) {
+            const action = prompting.handlers[inputStr];
+            if (action) action();
+        } else {
+            log(`Please choose one of: ${prompting.options.join(', ')}`);
+            input.value = "";
+            return;
+        }
+        prompting = null;
+        input.value = "";
+        return;
+    }
     const commandName = rawArgs[0];
     const cmd = commands[commandName] || commands[aliases[commandName]];
     if (cmd) {
@@ -211,6 +296,14 @@ function log(str,bottom = false, top = false){
     if (top) output.innerText += `\n`
     output.innerText += `${str}\n`
     if (bottom) output.innerText += `\n`
+}
+function prompt(message, options, handlers) {
+    const optionStr = options.join('/');
+    log(`${message} (${optionStr})`);
+    prompting = {
+        options,
+        handlers
+    };
 }
 function updPoints(){
     document.getElementById('bar').textContent = `Terminal Points: ${points.toFixed(4)}`;
