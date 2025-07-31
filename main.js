@@ -112,120 +112,128 @@ const commands = {
             log("invalid choice")
             return
         }
+        if (points < bet){
+            log("You don't have enough")
+            return
+        }
+                if (bet < 1){
+            log("minimum bet is 1")
+            return
+        }
+        if (isNaN(bet)){
+            log("enter a number")
+            return
+        }
         if (bet == "all") bet = points
         if (bet == "half") bet = points / 2
-        if (!bet || isNaN(bet)) log("enter a valid bet")
-        else if (bet < 1) log("minimum bet is 1")
-        else {
-            if (points < bet){
-                log("You don't have enough")
-                return
+        points -= bet
+        updPoints()
+        let spins = Math.floor(Math.random() * 30) + 25
+        let index = 0
+        let delay = 10
+        function spin(){
+            function a(i){
+                return options[(i + options.length) % options.length]
             }
-            points -= bet
-            updPoints()
-            let spins = Math.floor(Math.random() * 30) + 25
-            let index = 0
-            let delay = 10
-            function spin(){
-                function a(i){
-                    return options[(i + options.length) % options.length]
-                }
-                if (spins > 0){
-                    index++
-                    spins--
-                    delay += 10
-                    if (index > options.length) index = 0
-                    output.innerHTML = `<br>&nbsp;${a(index - 2)}<br>&nbsp;${a(index - 1)}<br>>${a(index)}<<br>&nbsp;${a(index+1)}<br>&nbsp;${a(index+2)}<br><br>`
-                    setTimeout(spin,delay)
+            if (spins > 0){
+                index++
+                spins--
+                delay += 10
+                if (index > options.length) index = 0
+                output.innerHTML = `<br>&nbsp;${a(index - 2)}<br>&nbsp;${a(index - 1)}<br>>${a(index)}<<br>&nbsp;${a(index+1)}<br>&nbsp;${a(index+2)}<br><br>`
+                setTimeout(spin,delay)
+            }
+            else {
+                log(options[index],true)
+                if (choice == options[index]){
+                    if (choice == "green") points += bet * 10
+                    else points += bet * 2
+                    log("You won!")
                 }
                 else {
-                    log(options[index],true)
-                    if (choice == options[index]){
-                        if (choice == "green") points += bet * 10
-                        else points += bet * 2
-                        log("You won!")
-                    }
-                    else {
-                        log("you lose :(")
-                    }
-                    updPoints()
+                    log("you lose :(")
                 }
+                updPoints()
             }
-            spin()
         }
+        spin()
     },
     rpg: () => {
         window.location.href = "https://www.youtube.com/embed/TLj0-e6J5Yk?autoplay=1"
     },
     blackjack: (bet) => {
+        if (points < bet){
+            log("You don't have enough")
+            return
+        }
+        if (bet < 1){
+            log("minimum bet is 1")
+            return
+        }
+        if (isNaN(bet)){
+            log("enter a number")
+            return
+        }
         if (bet == "all") bet = points
         if (bet == "half") bet = points / 2
-        if (!bet || isNaN(bet)) log("enter a valid bet")
-        else if (bet < 1) log("minimum bet is 1")
-        else {
-            if (points < bet){
-                log("You don't have enough")
+        points -= bet
+        updPoints()
+        let amount = Math.ceil(Math.random() * 10);
+        let dealer = Math.ceil(Math.random() * 10)
+        const dealerTurn = () => {
+            if (dealer === 21) {
+                log("Dealer has blackjack! You lose.");
+                return;
+            }
+            if (dealer > 21) {
+                log("Dealer busted! You win!");
+                points += bet * 2
+                return;
+            }
+            if (dealer >= 17) {
+                if (dealer > amount) {
+                    log(`Dealer stood with ${dealer}, You Lose`);
+                } else if (dealer < amount) {
+                    log(`Dealer stood with ${dealer}, You Win!`);
+                    points += bet * 2
+                } else {
+                    log("Push!");
+                    points += bet
+                }
+                return;
+            }
+            dealer += Math.ceil(Math.random() * 10);
+            log(`Dealer now has ${dealer}`)
+            setTimeout(dealerTurn, 1000);
+        };
+        const play = () => {
+            log(`Dealer has: ${dealer}`)
+            log(`Your total is: ${amount}`);
+            if (amount == 21){
+                log(`Blackjack!`)
+                points += bet * 2
                 return
             }
-            points -= bet
-            updPoints()
-            let amount = Math.ceil(Math.random() * 10);
-            let dealer = Math.ceil(Math.random() * 10)
-            const dealerTurn = () => {
-                if (dealer === 21) {
-                    log("Dealer has blackjack! You lose.");
-                    return;
-                }
-                if (dealer > 21) {
-                    log("Dealer busted! You win!");
-                    points += bet * 2
-                    return;
-                }
-                if (dealer >= 17) {
-                    if (dealer > amount) {
-                        log(`Dealer stood with ${dealer}, You Lose`);
-                    } else if (dealer < amount) {
-                        log(`Dealer stood with ${dealer}, You Win!`);
-                        points += bet * 2
-                    } else {
-                        log("Push!");
-                        points += bet
-                    }
-                    return;
-                }
-                dealer += Math.ceil(Math.random() * 10);
-                log(`Dealer now has ${dealer}`)
-                setTimeout(dealerTurn, 1000);
-            };
-            const play = () => {
-                log(`Dealer has: ${dealer}`)
-                log(`Your total is: ${amount}`);
-                if (amount == 21){
-                    log(`Blackjack!`)
-                    points += bet * 2
-                    return
-                }
-                if (amount > 21) {
-                    log("Bust! You lose.");
-                    return;
-                }
-                setTimeout(() => {
-                    prompt("Hit or stand?", ["h", "s"], {
-                        h: () => {
-                            amount += Math.ceil(Math.random() * 10);
-                            play();
-                        },
-                        s: () => {
-                            log(`You stood with ${amount}.`);
-                            setTimeout(() => {
-                                dealerTurn()
-                            }, 1000);
-                        }
-                    });
-                }, 50);
+            if (amount > 21) {
+                log("Bust! You lose.");
+                return;
             }
-            play();
-        };
+            setTimeout(() => {
+                prompt("Hit or stand?", ["h", "s"], {
+                    h: () => {
+                        amount += Math.ceil(Math.random() * 10);
+                        play();
+                    },
+                    s: () => {
+                        log(`You stood with ${amount}.`);
+                        setTimeout(() => {
+                            dealerTurn()
+                        }, 1000);
+                    }
+                });
+            }, 50);
+        }
+        play();
     }
 }
 const aliases = {}
