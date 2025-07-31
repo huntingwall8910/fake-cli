@@ -296,6 +296,7 @@ function log(str,bottom = false, top = false){
     if (top) output.innerText += `\n`
     output.innerText += `${str}\n`
     if (bottom) output.innerText += `\n`
+    window.scrollTo(0, document.body.scrollHeight);
 }
 function prompt(message, options, handlers) {
     const optionStr = options.join('/');
