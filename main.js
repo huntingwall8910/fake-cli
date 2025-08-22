@@ -112,6 +112,8 @@ const commands = {
             log("invalid choice")
             return
         }
+        if (bet == "all") bet = points
+        if (bet == "half") bet = points / 2
         if (points < bet){
             log("You don't have enough")
             return
@@ -124,8 +126,6 @@ const commands = {
             log("enter a number")
             return
         }
-        if (bet == "all") bet = points
-        if (bet == "half") bet = points / 2
         points -= bet
         updPoints()
         let spins = Math.floor(Math.random() * 30) + 25
@@ -162,6 +162,8 @@ const commands = {
         window.location.href = "https://www.youtube.com/embed/TLj0-e6J5Yk?autoplay=1"
     },
     blackjack: (bet) => {
+        if (bet == "all") bet = points
+        if (bet == "half") bet = points / 2
         if (points < bet){
             log("You don't have enough")
             return
@@ -174,8 +176,6 @@ const commands = {
             log("enter a number")
             return
         }
-        if (bet == "all") bet = points
-        if (bet == "half") bet = points / 2
         points -= bet
         updPoints()
         let amount = Math.ceil(Math.random() * 10);
@@ -319,4 +319,5 @@ function updPoints(){
     localStorage.setItem("points",points)
 }
 updPoints()
+
 log(`type help for commands`)
